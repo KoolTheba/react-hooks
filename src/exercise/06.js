@@ -1,13 +1,13 @@
 // useEffect: HTTP requests
 
 import * as React from 'react'
-import { fetchPokemon,  PokemonInfoFallback, PokemonDataView} from '../pokemon'
+import { fetchPokemon,  PokemonInfoFallback, PokemonDataView, PokemonErrorBoundary} from '../pokemon'
 
 import {PokemonForm} from '../pokemon'
 
 function PokemonInfo({pokemonName}) {
   const initialState = {
-    status: 'idle',
+    status: pokemonName ? 'pending' : 'idle',
     data: null,
     error: null
   }
@@ -40,7 +40,7 @@ function PokemonInfo({pokemonName}) {
   }
 
   if(status === 'rejected') {
-    return <div role="alert">Error: {error}</div>
+    throw error
   }
 
   if(status === 'pending'){
@@ -53,17 +53,19 @@ function PokemonInfo({pokemonName}) {
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
 
-  function handleSubmit(newPokemonName) {
-    setPokemonName(newPokemonName)
-  }
+  const handleSubmit = (newPokemonName) => setPokemonName(newPokemonName)
+
+  const handleReset = () => setPokemonName('')
 
   return (
     <div className="pokemon-info-app">
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
-      <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
-      </div>
+        <PokemonErrorBoundary onReset={handleReset} resetKeys={[pokemonName]}>
+          <div className="pokemon-info">
+            <PokemonInfo pokemonName={pokemonName} />
+          </div>
+        </PokemonErrorBoundary>
     </div>
   )
 }
